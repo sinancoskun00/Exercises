@@ -1,0 +1,474 @@
+// Datum: 20.04.2024
+// TLDR: (ls, cat, grep, wc, sort) von Unix (stark simplifiziert) in einem Programm vereint
+
+#include <stdio.h>
+#include <string.h>
+#include <getopt.h>
+#include <ctype.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <alloca.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <dirent.h>
+
+int cat(int argc, char *argv[]);
+int doCat(bool lineNum, bool printCtrl, bool showEol, FILE *fpInput);
+int ls(int argc, char *argv[]);
+int doLs(bool allFiles, bool longList, bool listDirs, const char *name);
+int grep(int argc, char *argv[]);
+//int doGrep(bool caseInsensitive, bool invertMatch, int fdInput);
+int doGrep(bool caseInsensitive, bool invertMatch, FILE *fpInput, char *muster);
+int wc(int argc, char *argv[]);
+int doCount(bool countLines, bool countWords, bool countChars, int length, void *data);
+int sort(int argc, char *argv[]);
+int doSort(bool sortReverse, int length, void *data);
+
+bool endsWith(const char *arg, const char *command);
+
+// Allgemein: wir rufen unsere Befehle auf via Kommandozeile, d.h. im Terminal " ./ls -al ", " ./grep char main.c " ...
+
+int main(int argc, char *argv[])
+
+{
+    if ( argc==0 ) {
+        fprintf(stderr, "Syntax: BusyBox <args>\n");
+        return 1;
+    }
+    if ( endsWith(argv[0], "cat") ) {
+        return cat(argc, argv);
+    }
+    if ( endsWith(argv[0], "ls") ) {
+        return ls(argc, argv);
+    }
+    if ( endsWith(argv[0], "grep") ) {
+        return grep(argc, argv);
+    }
+    if ( endsWith(argv[0], "wc") ) {
+        return wc(argc, argv);
+    }
+    if ( endsWith(argv[0], "sort") ) {
+        return sort(argc, argv);
+    }
+    fprintf(stderr, "Unsupported command: %s\n", argv[0]);
+    return 0;
+}
+
+bool endsWith(const char *arg, const char *command)
+
+{
+    char *lastSlash = strrchr(arg, '/');
+    return lastSlash == NULL && strcmp(arg, command) == 0 ||
+           lastSlash != NULL && strcmp(lastSlash + 1, command) == 0;
+}
+
+int cat(int argc, char *argv[])
+
+{
+    int option = 0;
+    bool showEol = false;
+    bool lineNum = false;
+    bool printCtrl = false;
+    while ((option = getopt(argc, argv, "vEn")) != -1) {
+        switch (option) {
+            case 'n':
+                lineNum = true;
+                break;
+            case 'v':
+                printCtrl = true;
+                break;
+            case 'E':
+                showEol = true;
+                break;
+        }
+    }
+
+    if (optind == argc) {
+        doCat(lineNum, printCtrl, showEol, stdin);
+    } else {
+        for (int i = optind; i < argc; ++i) {
+            FILE *fpInput = fopen(argv[i], "r");
+            if (fpInput == NULL) {
+                perror(argv[i]);
+                continue;
+            }
+            doCat(lineNum, printCtrl, showEol, fpInput);
+            fclose(fpInput);
+        }
+    }
+}
+
+int doCat(bool lineNum, bool printCtrl, bool showEol, FILE *fpInput)
+{
+    //in Voll bereits gegeben
+    int currentLine = 0;
+    int currentChar;
+    int lastChar = '\n';
+    while ( (currentChar=fgetc(fpInput)) != -1) {
+        if (lastChar == '\n') {
+            if (lineNum) {
+                printf("%5d ", currentLine++);
+            }
+        }
+        if (currentChar == '\n') {
+            if (showEol) {
+                putc('$', stdout);
+            }
+            putc(currentChar, stdout);
+        }
+        else if ((currentChar >= 32 && currentChar <= 127) || isspace(currentChar)){
+            putc(currentChar, stdout);
+        }
+        else if ( printCtrl ) {
+            if ( currentChar < 32 ) {
+                putc('^', stdout);
+                putc(currentChar+'@', stdout);
+            }
+            else {
+                printf("\\%03o", currentChar);
+            }
+        }
+        else {
+            putc(currentChar, stdout);
+        }
+        lastChar = currentChar;
+    }
+    return 0;
+}
+
+int ls(int argc, char *argv[])
+
+{
+   //Option für -a, -l, -d
+    int option = 0;
+    bool allFiles = false;
+    bool longList = false;
+    bool listDirs = false;
+    //Optionen aus der Kommandozeile parsen
+    while ((option = getopt(argc, argv, "lad")) != -1) {
+        //je nach Option bools answitchen
+        switch (option) {
+            case 'a':
+                allFiles = true;
+                break;
+            case 'l':
+                longList = true;
+                break;
+            case 'd':
+                listDirs = true;
+                break;
+        }
+    }
+    //wenn optind == argc, dann gibt es keine weiteren Kommandozeilenargumente mehr
+    //in dem Fall checken wir ob wir Zugriff haben. Wenn ja, dann wird current directory (".") gelistet.
+    if (optind == argc) {
+        if (access(".", F_OK) == 0) {
+            doLs(allFiles, longList, listDirs, ".");
+        }
+        //weitere Kommandozeilenargumente - itererie drüber, speicher sie
+        //check ob Ordner, da in dem Fall anders vorgegangen wird
+    } else {
+        for (int i = optind; i < argc; ++i) {
+            struct stat path_stat;
+            if (stat(argv[i], &path_stat) == 0) {
+                if (S_ISDIR(path_stat.st_mode)) {
+                    doLs(allFiles, longList, listDirs, argv[i]);
+                } else {
+                    //überlappende printLines die nur bei longList ausgeschaltet werden müssen
+                    //sonst teils doppelt
+                    if(!longList) {
+                        printf("%s\n", argv[i]);
+                    }
+                }
+            } else {
+                perror(argv[i]);
+            }
+        }
+    }
+}
+
+int doLs(bool allFiles, bool longList, bool listDirs, const char *name)
+
+{
+    //Strukturen für Zugriff auf Ordner und Erkennung ob Ordner / nicht
+    DIR *dir;
+    struct dirent *entry;
+    struct stat fileStat;
+
+    dir = opendir(name);
+    if (dir == NULL) {
+        perror(name);
+        return 1;
+    }
+    //diese printline liefert nur Ordner, keine Dateien
+    if (listDirs) {
+            printf("%s\n", name);
+    }
+
+    //WIP: "ls -ald" normal zeigt Rechte des "." Ordner - aktuell werden bei mir "." & ".." gezeigt.
+    while ((entry = readdir(dir)) != NULL) {
+        if (!listDirs || (listDirs && entry->d_name[0] != '.')) {
+            break;
+        }
+
+        //Um die versteckten Verzeichnisse nicht immer mit anzuzeigen, bzw nur bei allFiles
+        if (!allFiles && entry->d_name[0] == '.') {
+            continue;
+        }
+
+        char path[PATH_MAX];
+        snprintf(path, sizeof(path), "%s/%s", name, entry->d_name);
+        if (lstat(path, &fileStat) < 0) {
+            perror(path);
+            closedir(dir);
+            return 1;
+        }
+
+        //konditionelle Statements für Rechte, d.h. "wenn Ordner, dann print "d", sonst print "-", usw.
+        if (longList) {
+            printf((S_ISDIR(fileStat.st_mode)) ? "d" : "-");
+            printf((fileStat.st_mode & S_IRUSR) ? "r" : "-");
+            printf((fileStat.st_mode & S_IWUSR) ? "w" : "-");
+            printf((fileStat.st_mode & S_IXUSR) ? "x" : "-");
+            printf((fileStat.st_mode & S_IRGRP) ? "r" : "-");
+            printf((fileStat.st_mode & S_IWGRP) ? "w" : "-");
+            printf((fileStat.st_mode & S_IXGRP) ? "x" : "-");
+            printf((fileStat.st_mode & S_IROTH) ? "r" : "-");
+            printf((fileStat.st_mode & S_IWOTH) ? "w" : "-");
+            printf((fileStat.st_mode & S_IXOTH) ? "x " : "- ");
+        }
+        //printe am Ende den Namen der Struktur (Ordner/Datei) selbst
+        printf("%s\n", entry->d_name);
+
+    }
+    //schließ den Ordner, verlass das Programm
+    closedir(dir);
+    return 0;
+
+}
+
+int grep(int argc, char *argv[])
+
+{
+    int option = 0;
+    bool caseInsensitive = false;
+    bool invertMatch = false;
+
+    while ((option = getopt(argc, argv, "vi")) != -1) {
+        switch (option) {
+            case 'i':
+                caseInsensitive = true;
+                break;
+            case 'v':
+                invertMatch = true;
+                break;
+        }
+    }
+    //gleiche Logik wie ls
+    if (optind == argc) {
+        printf("wrong");
+        return 0;
+        //anders: wir übernehmen das zu Suchende Muster aus der Kommandozeile
+    } else {
+        char *muster = argv[optind];
+        optind++;
+        //redundanter Code aber whatever, funktioniert
+        if(optind == argc) {
+            printf("wrong");
+            return 0;
+        }
+        //iterieren über Optionen & Argumente, öffnen Datei
+        for (int i = optind; i < argc ; ++i) {
+            FILE *fpInput = fopen(argv[i], "r");
+            if (fpInput == NULL) {
+                perror(argv[i]);
+                continue;
+            }
+            doGrep(caseInsensitive, invertMatch, fpInput, muster);
+            fclose(fpInput);
+        }
+    }
+}
+
+//Farbe - Normal 'grep' macht rot
+#define ANSI_COLOR_RED     "\x1b[36;1;4m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
+int doGrep(bool caseInsensitive, bool invertMatch, FILE *fdInput, char *muster) {
+    //ähnliches Verhalten wie cat, was bereits vorgegeben war - konnte deshalb als Vorlage benutzt werden
+    int currentChar;
+    int lastChar = '\n';
+    char currentLine[1024];
+    int lineIndex = 0;
+
+    //solang wir nicht am Ende der Datei (EOF) angekommen sind, ...
+    while ((currentChar = fgetc(fdInput)) != EOF) {
+        if (currentChar == '\n') {
+            currentLine[lineIndex] = '\0';
+            lineIndex = 0;
+
+            if ((!invertMatch && strstr(currentLine, muster)) || (invertMatch && !strstr(currentLine, muster))) {
+                char coloredLine[1024];
+                char *match;
+                //wenn in der aktuellen Zeile das Muster gefunden wurde,...
+                if ((match = strstr(currentLine, muster)) != NULL) {
+                    //printen wir die Zeile, aktivieren Farbe, printen Muster, resetten Farbe
+                    sprintf(coloredLine, "%.*s%s%s%s", (int)(match - currentLine), currentLine, ANSI_COLOR_RED, muster, ANSI_COLOR_RESET);
+                    strcat(coloredLine, match + strlen(muster));
+                    printf("%s\n", coloredLine);
+                } else {
+                    printf("%s\n", currentLine);
+                }
+            }
+        } else {
+            //wenn nicht auffindbar, dann weiter
+            currentLine[lineIndex++] = currentChar;
+            if (lineIndex >= sizeof(currentLine) - 1) {
+                fprintf(stderr, "wrong\n");
+                return -1;
+            }
+        }
+    }
+    return 0;
+}
+
+int wc(int argc, char *argv[])
+
+{
+    //Funktionalität wieder teils von cat kopierbar - nur wollen wir jetzt nicht alles ausgeben, sondern nur alles zählen
+    int option = 0;
+    printf("WECCE\n");
+    bool countLines = false;
+    bool countWords = false;
+    bool countChars = false;
+    int length = 0;
+
+    while ((option = getopt(argc, argv, "lwc")) != -1) {
+        switch (option) {
+            case 'l':
+                countLines = true;
+                break;
+            case 'w':
+                countWords = true;
+                break;
+            case 'c':
+                countChars = true;
+                break;
+        }
+    }
+    if (optind == argc) {
+        doCount(countLines, countWords, countChars, length, stdin);
+    } else {
+        for (int i = optind; i < argc; ++i) {
+            FILE *fpInput = fopen(argv[i], "r");
+            if (fpInput == NULL) {
+                perror(argv[i]);
+                continue;
+            }
+            doCount(countLines, countWords, countChars, length, fpInput);
+            fclose(fpInput);
+        }
+    }
+}
+
+int doCount(bool countLines, bool countWords, bool countChars, int length, void *data)
+
+{
+        int wordCount = 0;
+        int lineCount = 0;
+        int charCount = 0;
+        bool inWord = false;
+        //casten void *data auf FILE, da nicht sicher wie man Funktionalität via void *data hinkriegt
+        FILE *file = (FILE *)data;
+        int currentChar;
+
+        //solang nicht Ende der Datei, ...
+        while ((currentChar = fgetc(file)) != EOF) {
+            //jede Iteration ist ein Char
+        charCount++;
+            if(currentChar == '\n') {
+                //wenn Char = '\n', dann Zeilenende
+                lineCount++;
+            }
+                if (isspace(currentChar)) {
+                    if (inWord) {
+                        inWord = false;
+                        wordCount++;
+                    }
+                } else {
+                    inWord = true;
+                }
+        }
+        if (inWord) wordCount++;
+
+        if(countWords) printf("wc%d\n", wordCount);
+        if(countLines) printf("lc%d\n", lineCount);
+        if(countChars) printf("lc%d\n", charCount);
+        if(!countWords && !countLines && !countChars) {
+            printf("LC:%d\n", lineCount);
+            printf("WC%d\n", wordCount);
+            printf("CC%d\n", charCount);
+        }
+        return 0;
+    }
+
+
+
+int sort(int argc, char *argv[])
+
+{
+    printf("SORTE\n");
+    int fd=open(argv[1], O_RDONLY);
+    if ( fd == -1 ) {
+        perror(argv[1]);
+        return 1;
+    }
+    struct stat st;
+    stat(argv[1], &st);
+    void *data = mmap(NULL, st.st_size, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0);
+    if ( data == NULL ) {
+        perror(argv[1]);
+        return 1;
+    }
+    doSort(false, st.st_size, data);
+    munmap(data, st.st_size);
+    close(fd);
+    return 0;
+}
+
+int comparator(const void *p1, const void *p2)
+
+{
+    //auch bereits vorgegeben
+    const char **c1=p1;
+    const char **c2=p2;
+    return strcmp(*c1, *c2);
+}
+
+int doSort(bool sortReverse, int length, void *data)
+
+{
+    int lines = 0;
+    char *cData = data;
+    char *nData;
+    while ( (nData = strchr(cData, '\n')) != NULL ){
+        lines++;
+        cData = nData+1;
+    }
+    const char **aData = alloca(lines*sizeof(const char *));
+    int line = 0;
+    cData = data;
+    while ( (nData = strchr(cData, '\n')) != NULL ){
+        aData[line++]=cData;
+        *nData = '\0';
+        cData = nData+1;
+    }
+    qsort(aData, lines, sizeof(const char *), comparator);
+    for (int i = 0; i < lines; ++i) {
+        printf( "%s\n", aData[i]);
+
+    }
+}
+
