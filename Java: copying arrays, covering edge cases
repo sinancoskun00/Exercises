@@ -1,4 +1,4 @@
-
+//  Datum: 17.10.2023
 //  TLDR: Java Code um Arrays zu kopieren
 //  stellt Index-OOB-Exception sicher wenn Längen nicht stimmen
 //  Integer zu byte-Kopierung
