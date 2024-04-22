@@ -1,4 +1,4 @@
-
+// Datum: ‎22.04.‎2024 
 // TLDR: Swing-GUI fordert Datumseingabe, z.B. "11.03.2020" und berechnet zug. Wochentag.
 
 import java.awt.EventQueue;
@@ -21,7 +21,7 @@ import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-public class GiveMeThatDayBaby {
+public class DayCalc {
 
 	private JFrame frame;
 	private JFormattedTextField onlyTf;
@@ -33,7 +33,7 @@ public class GiveMeThatDayBaby {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					GiveMeThatDayBaby window = new GiveMeThatDayBaby();
+					DayCalc window = new DayCalc();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -45,7 +45,7 @@ public class GiveMeThatDayBaby {
 	/**
 	 * Create the application.
 	 */
-	public GiveMeThatDayBaby() {
+	public DayCalc() {
 		initialize();
 	}
 
@@ -80,7 +80,7 @@ public class GiveMeThatDayBaby {
 		panel.add(onlyTf, BorderLayout.CENTER);
 		onlyTf.setColumns(10);
 		
-		JButton goButton = new JButton("!go baby go!");
+		JButton goButton = new JButton("!go!");
 		goButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				daterGetter(onlyTf, resultLbl);
