@@ -1,0 +1,37 @@
+// TLDR: Programm um von GrayCode zu binär und vice versa zu übersetzen via XOR-Operation
+// ausgeführt via Test-Cases die dynamisch binär / graycode erzeugen und in Programm einspeisen.
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.stream.IntStream;
+
+public class GrayAndBinary {
+    public static int[] getGray(int values) {
+      
+    }
+
+    public static int grayToBinary(int grayCode) {
+
+        //temp: Zwischenspeicher für grayCode Bits
+        int temp;
+        int tempBinary = grayCode;
+        //grayCode 1 nach rechts schieben, zwischenspeichern,
+        //weiter bis temp = 0 also nichts übrig
+        //temp-bits nach rechts schieben um zu prüfen
+        for (temp = tempBinary >> 1; temp != 0; temp = temp >> 1) {
+            //xor operation: invertiert abhänging von temp-Wert
+            tempBinary = tempBinary ^ temp;
+        }
+        //hier extra Variable die eigentlich redundant ist um den wahren Binärwert vom
+        //temporären Binärwert der im Prozess erstellt wird zu unterscheiden
+        int binary = tempBinary;
+        return binary;
+    }
+
+    public static int binaryToGray(int binaryCode) {
+        //eins nach rechts schieben, xor mit Ursprung vgl.
+        //jedes grayCode bit ist das XOR des bits im binär (!!!)
+        return (binaryCode >> 1) ^ binaryCode;
+
+    }
+}
