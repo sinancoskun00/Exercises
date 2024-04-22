@@ -1,0 +1,212 @@
+// Datum: 30. November 2023
+// TLDR: Einfacher Taschenrechner, support für +, -, /, *, Quadrierung.
+
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
+import java.awt.event.ActionEvent;
+import javax.swing.JLabel;
+import java.awt.Font;
+import javax.swing.SwingConstants;
+import javax.swing.JRadioButton;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
+
+
+public class Taschenrechner {
+
+	private JFrame frame;
+	private JTextField firstNumber;
+	private JTextField secondNumber;
+	private JLabel resultLbl;
+	private String urLeft;
+	private String urRight;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					Taschenrechner window = new Taschenrechner();
+					window.frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the application.
+	 */
+	public Taschenrechner() {
+		initialize();
+	}
+
+	/**
+	 * Initialize the contents of the frame.
+	 */
+	private void initialize() {
+		frame = new JFrame();
+		frame.setBounds(100, 100, 450, 300);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		JPanel panel = new JPanel();
+		frame.getContentPane().add(panel, BorderLayout.CENTER);
+		panel.setLayout(new GridLayout(0, 2, 0, 0));
+		
+		firstNumber = new JTextField();
+		panel.add(firstNumber);
+		firstNumber.setColumns(10);
+		
+		secondNumber = new JTextField();
+		panel.add(secondNumber);
+		secondNumber.setColumns(10);
+		
+		JButton addButton = new JButton("+");
+		addButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+				resultLbl.setText(
+						format(
+								calc(
+										getNumber(firstNumber),
+										getNumber(secondNumber),
+										"+"
+										)));
+			} catch (NumberFormatException y) {
+				resultLbl.setText("!nein!");
+			}} 
+		});
+		panel.add(addButton);
+		
+		JButton subtractButton = new JButton("-");
+		subtractButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+				resultLbl.setText(
+						format(
+								calc(
+										getNumber(firstNumber),
+										getNumber(secondNumber),
+										"-"
+										)));	
+			} catch (NumberFormatException y) {
+				resultLbl.setText("!nein!");
+			}}
+		});
+		panel.add(subtractButton);
+		
+		JButton multiplyButton = new JButton("*");
+		multiplyButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+				resultLbl.setText(
+						format(
+								calc(
+										getNumber(firstNumber),
+										getNumber(secondNumber),
+										"*"
+										)));
+
+			} catch (NumberFormatException y) {
+				resultLbl.setText("!nein!");
+			}}
+		});
+		panel.add(multiplyButton);
+		
+		JButton divideButton = new JButton("/");
+		divideButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			try {
+			resultLbl.setText(
+					format(
+							calc(
+									getNumber(firstNumber),
+									getNumber(secondNumber),
+									"/"
+									)));
+			} catch (NumberFormatException y) {
+				resultLbl.setText("!nein!");
+			}}
+			
+		});
+		panel.add(divideButton);
+		
+		urLeft =  firstNumber.getText();
+		urRight = secondNumber.getText();
+		
+		JCheckBox squareButtonLeft = new JCheckBox("set to x²");
+		squareButtonLeft.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(squareButtonLeft.isSelected()) {urLeft = firstNumber.getText(); firstNumber.setText(squareIt(firstNumber));}
+				else firstNumber.setText(urLeft);
+			}
+		});
+		squareButtonLeft.setHorizontalAlignment(SwingConstants.CENTER);
+		panel.add(squareButtonLeft);
+		
+		JCheckBox squareButtonRight = new JCheckBox("set to y²");
+		squareButtonRight.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(squareButtonRight.isSelected()) {urRight = secondNumber.getText(); secondNumber.setText(squareIt(secondNumber));}
+				else secondNumber.setText(urRight);
+			}
+		});
+		
+		squareButtonRight.setHorizontalAlignment(SwingConstants.CENTER);
+		panel.add(squareButtonRight);
+		
+		JLabel emptyPaddingLbl = new JLabel("Result: ");
+		emptyPaddingLbl.setHorizontalAlignment(SwingConstants.RIGHT);
+		emptyPaddingLbl.setFont(new Font("Proxy 5", Font.BOLD, 15));
+		panel.add(emptyPaddingLbl);
+		
+		resultLbl = new JLabel("");
+		resultLbl.setFont(new Font("Proxy 1", Font.BOLD, 15));
+		panel.add(resultLbl);
+	}
+	
+	private double calc(double one, double two, String op) {
+	
+		
+		double result = 0;
+		switch(op) {
+		case "+":	result= one+two; break;
+		case "-":	result= one-two; break;
+		case "*":	result= one*two; break;
+		case "/":	result= one/two; break;
+		}
+		return result;
+	}
+	
+	private double getNumber(JTextField a) {
+		return Double.valueOf(  
+				a.getText());	
+	}
+	
+	private String squareIt(JTextField a) {
+		double toSquare = Double.valueOf(   
+				a.getText()
+				);
+		
+		double squared = toSquare*toSquare;
+		return String.valueOf(squared);
+	}
+	
+	private String format(double result) {
+		final DecimalFormat df = new DecimalFormat("0.00");
+		return String.valueOf(df.format(result));
+	}
+
+}
+
