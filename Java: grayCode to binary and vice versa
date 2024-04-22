@@ -1,3 +1,4 @@
+// Datum: 08.11.2023
 // TLDR: Programm um von GrayCode zu binär und vice versa zu übersetzen via XOR-Operation
 // ausgeführt via Test-Cases die dynamisch binär / graycode erzeugen und in Programm einspeisen.
 
