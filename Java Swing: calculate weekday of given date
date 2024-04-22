@@ -1,0 +1,102 @@
+
+// TLDR: Swing-GUI fordert Datumseingabe, z.B. "11.03.2020" und berechnet zug. Wochentag.
+
+import java.awt.EventQueue;
+import javax.swing.JFrame;
+import java.awt.BorderLayout;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import javax.swing.JFormattedTextField;
+import javax.swing.SwingConstants;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.text.DateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.Locale;
+import javax.swing.JPanel;
+import java.awt.Font;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
+public class GiveMeThatDayBaby {
+
+	private JFrame frame;
+	private JFormattedTextField onlyTf;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					GiveMeThatDayBaby window = new GiveMeThatDayBaby();
+					window.frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the application.
+	 */
+	public GiveMeThatDayBaby() {
+		initialize();
+	}
+
+	/**
+	 * Initialize the contents of the frame.
+	 */
+	private void initialize() {
+		frame = new JFrame();
+		frame.setBounds(100, 100, 455, 139);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.getContentPane().setLayout(new GridLayout(1, 0, 0, 0));
+		
+		DateFormat dateFormat = DateFormat.getDateInstance();
+		
+		JPanel panel = new JPanel();
+		frame.getContentPane().add(panel);
+		panel.setLayout(new BorderLayout(0, 0));
+		
+		JLabel introTexTLbl = new JLabel("Auf welchen Wochentag fällt das folgende Datum?");
+		introTexTLbl.setFont(new Font("OCR A Extended", Font.BOLD, 14));
+		panel.add(introTexTLbl, BorderLayout.NORTH);
+		
+		JLabel resultLbl = new JLabel("Ergebnis: whatever");
+		resultLbl.setFont(new Font("OCR A Extended", Font.BOLD, 13));
+		panel.add(resultLbl, BorderLayout.SOUTH);
+		
+		JLabel datumLbl = new JLabel("Datum");
+		datumLbl.setFont(new Font("OCR A Extended", Font.BOLD, 13));
+		panel.add(datumLbl, BorderLayout.WEST);
+		
+		onlyTf = new JFormattedTextField(dateFormat);
+		panel.add(onlyTf, BorderLayout.CENTER);
+		onlyTf.setColumns(10);
+		
+		JButton goButton = new JButton("!go baby go!");
+		goButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				daterGetter(onlyTf, resultLbl);
+			}
+		});
+		goButton.setFont(new Font("OCR A Extended", Font.BOLD, 14));
+		panel.add(goButton, BorderLayout.EAST);
+	}
+	
+	public void daterGetter(JFormattedTextField o1, JLabel o2) {
+		LocalDate date = LocalDate.parse(o1.getText(), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+		Locale german = new Locale("de", "DE");
+		
+		o2.setText(
+		
+		date.getDayOfWeek().getDisplayName(TextStyle.FULL, german));
+	}
+
+}
