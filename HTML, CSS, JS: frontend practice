@@ -96,10 +96,11 @@
 
 <div class="superdiv">
 <ul id="menu">
-    <li><a href="./index.html?_ijt=7itlehg2b0apoiq2ou49848aig&_ij_reload=RELOAD_ON_SAVE">Index</a></li>
-    <li><a href="./progstuff.html?_ijt=q8t9ipg4fac8h46tsehs9ch37i&_ij_reload=RELOAD_ON_SAVE" target="_blank">Prog</a></li>
-    <li><a href="./hobbies.html?_ijt=f4st7m4u9qlsml1mo82vob7k3n&_ij_reload=RELOAD_ON_SAVE" target="_blank">TBD</a></li>
-    <li><a href="./impressum.html?_ijt=340vm5hp02kcbha80pcqj5g1gu&_ij_reload=RELOAD_ON_SAVE" target="_blank">Impressum</a></li>
+  //  <li>Index</li>
+  //  <li>Prog</li>
+  //  <li>TBD</li>
+  //  <li>Impressum</li>
+// war lokal also kaputt
 </ul>
 </div>
 
