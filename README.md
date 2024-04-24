@@ -6,5 +6,5 @@
 
 
 
-<p style="font-family:Cambria;"> Speicherplatz für verschiedene Projekte und Übungen </p>
+<p style="cursive;"> Speicherplatz für verschiedene Projekte und Übungen </p>
 
