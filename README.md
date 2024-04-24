@@ -6,5 +6,3 @@
 
 
 
-<p style="cursive;"> Speicherplatz für verschiedene Projekte und Übungen </p>
-
