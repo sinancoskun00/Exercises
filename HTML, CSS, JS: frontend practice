@@ -1,0 +1,108 @@
+// Projekt für ne eigene Webseite (lokal) - geht eher darum Funktionalitäten zu Üben
+// als irgendetwas sinnvolles darzustellen
+// Menüs uä kaputt da für lokale Nutzung entworfen
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="allstyles.css"/>
+    <meta charset="UTF-8">
+    <title>hey du, was geht?</title>
+
+
+
+
+
+</head>
+<body class="bodyIndex">
+<div class="x">
+<h1 class="h1Index">hey du!</h1>
+
+<h2 class="h2Index">bock auf n newsletter?</h2>
+    <form name="myForm" onsubmit="return isEmpty()" action="">
+        <table border="0" cellpadding="5" cellspacing="0">
+        <tr><td>Vorname: <input name="Vorname" type="text"></td></tr>
+        <tr><td>Nachname: <input name="Nachname" type="text"></td></tr>
+            <tr><td>E-Mail: <input name="Mail" type="mail"></td></tr>
+            <tr><td><input type="submit" value="Absenden"></td></tr>
+        </table>
+    </form>
+
+    <script type="text/javascript">
+        function isEmpty() {
+           var vorname = document.myForm.Vorname.value;
+           var mail = document.myForm.Mail.value;
+        if((vorname == null || vorname === "" ) || (mail == null || mail === "")) {
+            alert("Leeres Feld (Mail oder Vorname)");
+        }
+        if((!mail.includes('@'))) {
+            alert("Kein @ im Mailfeld");
+        }
+        }
+
+    </script>
+
+<a class="aIndex" href="https://www.gutenberg.org/ebooks/28054" target="_blank">
+    das ist ein random link
+</a>
+</div>
+
+<div class="x">
+<h2 class ="h2Index"> das auf jeden Fall ein zweiter Abschnitt</h2>
+<p class="pIndex" style="font-size: 9px;">Hiers noch ein Abschnitt: <cite>“You are really angry with
+    me for not having appeared to you in a red glow, with thunder
+    and lightning, with scorched wings, but have shown myself in
+    such a modest form. You are wounded, in the first place, in your
+    esthetic feelings, and, secondly, in your pride. How could such
+    a vulgar devil visit such a great man as you! Yes, there is that
+    romantic strain in you, that was so derided by Byelinsky. I can't
+    help it, young man, as I got ready to come to you I did think as
+    a joke of appearing in the figure of a retired general who had
+    served in the Caucasus, with a star of the Lion and the Sun on
+    my coat. But I was positively afraid of doing it, for you'd have
+    thrashed me for daring to pin the Lion and the Sun on my coat,
+    instead of, at least, the Polar Star or the Sirius.</cite></p>
+
+<a class="aIndex" href="https://www.gutenberg.org/ebooks/28054" target="_blank">
+    hey das der gleiche link
+</a>
+    </div>
+
+<div class="x">
+<h2 class="h2Index"> hiers ein dritter Abschnitt</h2>
+<p class="pIndex" style="font-size: 9px;">Hiers die Drei: <cite>We had given AM sentience. Inadvertently, of course, but sentience nonetheless. But it had been
+    trapped. AM wasn't God, he was a machine. We had created him to think, but there was nothing
+    it could do with that creativity. In rage, in frenzy, the machine had killed the human race, almost
+    all of us, and still it was trapped. AM could not wander, AM could not wonder, AM could not
+    belong. He could merely be. And so, with the innate loathing that all machines had always held
+    for the weak, soft creatures who had built them, he had sought revenge. And in his paranoia, he
+    had decided to reprieve five of us, for a personal, everlasting punishment that would never serve
+    to diminish his hatred ... that would merely keep him reminded, amused, proficient at hating
+    man. Immortal, trapped, subject to any torment he could devise for us from the limitless miracles
+    at his command.</cite></p>
+
+<a class="aIndex" href="https://en.wikipedia.org/wiki/I_Have_No_Mouth,_and_I_Must_Scream" target="_blank">
+    hiers wikipedia
+</a>
+</div>
+
+<link href="https://fonts.googleapis.com/css?family=Pridi:600" rel="stylesheet">
+
+<div class="marquee">
+    <div class="marquee__inner">
+        <p class="marquee__line">HALLO HERR SPEISER</p>
+        <p class="marquee__line">HALLO HERR SPEISER</p>
+    </div>
+</div>
+
+<div class="superdiv">
+<ul id="menu">
+    <li><a href="http://localhost:63342/trashproj/Aufgabe1/index.html?_ijt=7itlehg2b0apoiq2ou49848aig&_ij_reload=RELOAD_ON_SAVE">Index</a></li>
+    <li><a href="http://localhost:63342/trashproj/Aufgabe1/progstuff.html?_ijt=q8t9ipg4fac8h46tsehs9ch37i&_ij_reload=RELOAD_ON_SAVE" target="_blank">Prog</a></li>
+    <li><a href="http://localhost:63342/trashproj/Aufgabe1/hobbies.html?_ijt=f4st7m4u9qlsml1mo82vob7k3n&_ij_reload=RELOAD_ON_SAVE" target="_blank">TBD</a></li>
+    <li><a href="http://localhost:63342/trashproj/Aufgabe1/impressum.html?_ijt=340vm5hp02kcbha80pcqj5g1gu&_ij_reload=RELOAD_ON_SAVE" target="_blank">Impressum</a></li>
+</ul>
+</div>
+
+</body>
+</html>
